@@ -1,6 +1,6 @@
 CC= gcc
 CFLAGS= -Wall -Wextra -Werror
-LDFLAGS= sdl2-config --cflags --libs
+LDFLAGS= -lSDL2 -lSDL2_image `sdl2-config --cflags --libs`
 
 main:
 	$(CC) -o pong *.c $(CFLAGS) $(LDFLAGS)
