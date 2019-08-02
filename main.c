@@ -1,102 +1,110 @@
 #include "lib.h"
+#define LEN_MAX 80
 
-
-/* SDL_bool checkCollision(&rect1, SDL_Rect *rect2)
+int displayMenue()
 {
-    SDL_bool collision = SDL_HasIntersection(&rect1, &rect2);
-    return collision;
-}*/
+    char *Ip;
+    int port;
 
-Paddle *createPaddle(SDL_Renderer *rend, SDL_Window *window)
-{
-    Paddle *paddle;
-    paddle = malloc(sizeof(Paddle));
+    printf("To join the party give the ip adresse: ");
+    scanf("%s", Ip);
 
-    if(paddle == NULL)
+    printf("\n");
+
+    printf("Give the port: ");
+    scanf("%d", &port);
+
+    /*Uint32 flags = SDL_RENDERER_ACCELERATED;
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
     {
-        printf("Error creating paddle struct\n");
-        return NULL;
+        printf("error initializing SDL: %s\n", SDL_GetError());
+        return 1;
     }
 
-    paddle->paddleSurface = IMG_Load("asset/paddle_sprite.png");
-
-    if(!paddle->paddleSurface)
+    SDL_Window *win = SDL_CreateWindow("Pong-client",
+                                       SDL_WINDOWPOS_CENTERED,
+                                       SDL_WINDOWPOS_CENTERED,
+                                       WINDOW_WIDTH, WINDOW_HEIGHT, 0);
+    if (!win)
     {
-        printf("error creating surface paddle\n");
-        SDL_DestroyRenderer(rend);
-        SDL_DestroyWindow(window);
+        printf("error creating window: %s\n", SDL_GetError());
         SDL_Quit();
-        return NULL;
+        return 1;
     }
 
-    paddle->paddleTexture = SDL_CreateTextureFromSurface(rend, paddle->paddleSurface);
+    SDL_Renderer *rend = SDL_CreateRenderer(win, -1, flags);
 
-    SDL_FreeSurface(paddle->paddleSurface);
-
-    if (!paddle->paddleTexture)
+    if (!rend)
     {
-
-        printf("error creating texture player: %s\n", SDL_GetError());
-        SDL_DestroyRenderer(rend);
-        SDL_DestroyWindow(window);
+        printf("error creating renderer: %s\n", SDL_GetError());
+        SDL_DestroyWindow(win);
         SDL_Quit();
-        return NULL;
+        return 1;
     }
 
-    paddle->paddleRect.x = 100;
-    paddle->paddleRect.y = 800/2;
+    //void Redraw();
+    char *ipText;
+    char *portText;
+    SDL_bool done = SDL_FALSE; 
+    Sint32 cursor, select;
+    Uint32 render_flags = SDL_RENDERER_ACCELERATED;
 
-    return paddle;
+    char rep[LEN_MAX + 1] = {0};
+	size_t len = 0;
+	SDL_Event event;
+	SDL_bool quit = SDL_FALSE;
+	while(!quit)
+	{
+		SDL_bool has_type = SDL_FALSE;
+		SDL_WaitEvent(&event);
+		if(event.type == SDL_QUIT)
+			quit = SDL_TRUE;
+		else if( event.type == SDL_KEYDOWN)
+		{
+			if(event.key.keysym.sym == SDLK_BACKSPACE && len)
+			{
+				rep[len - 1] = 0;
+				len--;
+				has_type = SDL_TRUE;
+			}
+			if(event.key.keysym.sym == SDLK_v && (SDL_GetModState() & KMOD_CTRL) && SDL_HasClipboardText())
+			{
+				char *tmp = SDL_GetClipboardText();
+				size_t l = strlen(tmp);
+				size_t l_copy = len + l < LEN_MAX ? l : LEN_MAX - len;
+				strncpy(rep + len, tmp, l_copy);
+				len += l_copy;
+				SDL_free(tmp);
+				has_type = SDL_TRUE;
+			}
+			if(event.key.keysym.sym == SDLK_c && (SDL_GetModState() & KMOD_CTRL))
+				SDL_SetClipboardText(rep);
+		}
+		else if(event.type == SDL_TEXTINPUT)
+		{
+			size_t l = strlen(event.text.text);
+			size_t l_copy = len + l < LEN_MAX ? l : LEN_MAX - len;
+			strncpy(rep + len, event.text.text, l_copy);
+			len += l_copy;
+			has_type = SDL_TRUE;
+		}
+		if(has_type)
+			puts(rep);
+	}*/
 }
-
-Ball *createBall(SDL_Renderer *rend , SDL_Window *window)
-{
-    Ball *ball;
-    ball = malloc(sizeof(Ball));
-
-    if(ball == NULL)
-    {
-       printf("Error creating ball struct\n");
-       return NULL; 
-    }
-
-    ball->ballSurface = IMG_Load("asset/ball_sprite.png");
-
-    if(!ball->ballSurface)
-    {
-        printf("error creating ball surface\n");
-        SDL_DestroyRenderer(rend);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return NULL;
-    }
-
-    ball->ballTexture = SDL_CreateTextureFromSurface(rend, ball->ballSurface);
-
-    SDL_FreeSurface(ball->ballSurface);
-
-    if (!ball->ballTexture)
-    {
-
-        printf("error creating texture ball: %s\n", SDL_GetError());
-        SDL_DestroyRenderer(rend);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return NULL;
-    }
-
-    ball->ballRect.x = 400;
-    ball->ballRect.y = 400;
-
-    return ball;
-}
-
-
-
 
 int main()
 {
+    
     Uint32 render_flags = SDL_RENDERER_ACCELERATED;
+
+    pthread_t serverThread;
+
+    pthread_create(&serverThread, NULL, launchServer, NULL);
+
+    sleep(1);
+
+
 
     // Create a function to display the screen 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
@@ -149,7 +157,7 @@ int main()
     int moveTop = 0;
     int moveBottom = moveTop;
     int collideFlag = 0;
-
+    int sockClient = startClient();
      while (closeFlag != 1)
     {
         SDL_Event event;
@@ -172,6 +180,7 @@ int main()
                             player1->paddleRect.y = player1->paddleRect.y;
                         }
                         //printf("PAddle position y:%d\n", player1->paddleRect.y);
+                        funcClient(sockClient);
                     break;
 
                     case SDL_SCANCODE_DOWN:
@@ -233,7 +242,9 @@ int main()
         SDL_RenderPresent(rend);
         collideFlag = 0;
         SDL_Delay(1000/60);
+        
     }
+        //displayMenue();
         SDL_DestroyWindow(win);
         SDL_Quit();  
 }

@@ -1,3 +1,9 @@
+Anciens flag de compilation:
 gcc main.c -lSDL2 -lSDL2_image \`sdl2-config --cflags --libs\`
-
 gcc server.c -o server
+gcc main.c playerManager.c ballManager.c -lSDL2 -lSDL2_image `sdl2-config --cflags --libs`
+
+
+Flag de compilation utiliser actuellement(fonctionnel):
+gcc main.c playerManager.c ballManager.c server.c client.c -pthread -lSDL2 -lSDL2_image `sdl2-config --cflags --libs`
+

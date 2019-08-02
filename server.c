@@ -1,3 +1,5 @@
+#include "lib.h"
+
 #include <stdio.h>
 #include <netdb.h> 
 #include <netinet/in.h> 
@@ -6,9 +8,30 @@
 #include <sys/socket.h> 
 #include <sys/types.h> 
 #include <unistd.h>
-#define MAX 2 
+
+#define MAX 20 
 #define PORT 8080 
 #define SA struct sockaddr 
+
+
+/* int displayMenue()
+{
+	char *Ip;
+    int port;
+
+    printf("To join the party give the ip adresse: ");
+    scanf("%s", Ip);
+
+    printf("\n");
+
+    printf("Give the port: ");
+    scanf("%d", &port);
+
+	if(Ip = NULL && port != NULL)
+	{
+		
+	}
+}*/
 
 // Function designed for chat between client and server. 
 void func(int sockfd) 
@@ -20,17 +43,19 @@ void func(int sockfd)
 		bzero(buff, MAX); 
 
 		// read the message from client and copy it in buffer 
-		read(sockfd, buff, sizeof(buff)); 
+		//read(sockfd, buff, sizeof(buff)); 
+		recv(sockfd, buff, sizeof(buff), MSG_WAITALL);
 		// print buffer which contains the client contents 
 		printf("From client: %s\t To client : ", buff); 
-		bzero(buff, MAX); 
+		//bzero(buff, MAX); 
 		n = 0; 
 		// copy server message in the buffer 
-		while ((buff[n++] = getchar()) != '\n') 
-			; 
+		//while ((buff[n++] = getchar()) != '\n') 
+			//; 
 
 		// and send that buffer to client 
-		write(sockfd, buff, sizeof(buff)); 
+		//write(sockfd, buff, sizeof(buff)); 
+		send(sockfd, buff, sizeof(buff), 0);
 
 		// if msg contains "Exit" then server exit and chat ended. 
 		if (strncmp("exit", buff, 4) == 0) { 
@@ -41,7 +66,7 @@ void func(int sockfd)
 } 
 
 // Driver function 
-int startServer() 
+int startServ() 
 { 
 	int sockfd, connfd, len; 
 	struct sockaddr_in servaddr, cli; 
@@ -76,6 +101,9 @@ int startServer()
 	} 
 	else
 		printf("Server listening..\n"); 
+
+	//startClient();
+
 	len = sizeof(cli); 
 
 	// Accept the data packet from client and verification 
@@ -93,3 +121,9 @@ int startServer()
 	// After chatting close the socket 
 	close(sockfd); 
 } 
+
+
+void *launchServer(void *param)
+{
+	startServ();
+}

@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_image.h>
@@ -21,8 +22,6 @@ typedef struct
     SDL_Rect paddleRect;
 }Paddle;
 
-
-
 typedef struct 
 {
     SDL_Surface *ballSurface;
@@ -30,6 +29,11 @@ typedef struct
     SDL_Rect ballRect;
 }Ball;
 
-//Paddle *createPaddle(SDL_Renderer *rend, SDL_Window *window);
+Paddle* createPaddle(SDL_Renderer *rend, SDL_Window *window);
+Ball *createBall(SDL_Renderer *rend , SDL_Window *window);
 
+void *launchServer(void *param);
+
+int startClient();
+void funcClient(int sockfd);
 #endif

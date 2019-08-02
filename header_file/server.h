@@ -13,8 +13,7 @@
 typedef struct
 {
     int socket;
-
+    struct sockaddr_in client;
 }Server;
-
 
 
